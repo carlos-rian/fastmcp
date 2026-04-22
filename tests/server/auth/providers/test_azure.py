@@ -1018,6 +1018,26 @@ class TestAzureProviderFromB2C:
         assert "auth.mycompany.com" in provider._upstream_authorization_endpoint
         assert "https://https://" not in provider._upstream_authorization_endpoint
 
+    def test_b2c_custom_domain_with_http_scheme_normalized(
+        self, memory_storage: MemoryStore
+    ):
+        """from_b2c() strips http:// scheme and trailing slash from custom_domain."""
+        provider = AzureProvider.from_b2c(
+            tenant_name="mytenant",
+            policy_name="B2C_1_susi",
+            client_id="client-id",
+            client_secret="secret",
+            required_scopes=["mcp-access"],
+            base_url="https://myserver.com",
+            custom_domain="http://auth.mycompany.com/",
+            jwt_signing_key="test-secret",
+            client_storage=memory_storage,
+        )
+
+        assert "auth.mycompany.com" in provider._upstream_authorization_endpoint
+        assert "http://http://" not in provider._upstream_authorization_endpoint
+        assert "https://auth.mycompany.com" in provider._upstream_authorization_endpoint
+
     def test_b2c_custom_identifier_uri(self, memory_storage: MemoryStore):
         """from_b2c() respects an explicit identifier_uri override."""
         custom_uri = "https://mycompany.com/api/mcp"
